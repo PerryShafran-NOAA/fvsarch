@@ -1,0 +1,247 @@
+#!/bin/bash
+##
+#PBS -N fvsarch
+#PBS -o /lfs/h2/emc/vpppg/noscrub/perry.shafran/utils/tarvsdb.out
+#PBS -e /lfs/h2/emc/vpppg/noscrub/perry.shafran/utils/tarvsdb.out
+#PBS -q dev_transfer
+#PBS -l select=1:ncpus=1:mem=5GB
+#PBS -l walltime=02:00:00
+#PBS -A VERF-DEV
+#PBS -l debug=true
+#PBS -V
+
+set -x
+
+mkdir -p /lfs/h2/emc/stmp/perry.shafran/copyvsdb
+cd /lfs/h2/emc/stmp/perry.shafran/copyvsdb
+HOLD=/lfs/h2/emc/stmp/perry.shafran/copyvsdb
+
+module purge
+module load envvar/1.0
+module load PrgEnv-intel/8.1.0
+module load intel/19.1.3.304
+module load craype/2.7.13
+module load cray-mpich/8.1.7
+module load prod_util/2.0.10
+module load prod_envir/2.0.6
+
+COMverf=/lfs/h1/ops/prod/com/verf_gridtobs/v4.5/vsdb/gridtobs
+
+cp /lfs/h1/ops/prod/com/date/t12z nmcdate
+CYCLE=`cut -c 7-16 nmcdate`
+
+CYCM1=`$NDATE -48 $CYCLE`
+echo $CYCM1 > nmcdate.new
+
+year=`cut -c 1-4 nmcdate.new`
+month=`cut -c 5-6 nmcdate.new`
+
+hsi "mkdir /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month}"
+
+SKIPOPS=NO
+
+if [ $SKIPOPS = NO ] ; then
+
+mod="gfs nam gdas rap aknest aqm aqm1 conusnest fwis hawaiinest priconest hrrr akrtma hirtma prrtma rtma2p5 urma2p5 cmaq5xbc cmaq5x"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/${models}/*_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.${year}${month}.TAR.gz
+
+done
+
+mod="smartconus2p5 smartak3"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/smartinit2p5/${models}_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.${year}${month}.TAR.gz
+
+done
+
+mod="smartpr smarthi"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/smartinit/${models}_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.${year}${month}.TAR.gz
+
+done
+
+fi
+
+SKIPTH=NO
+
+if [ $SKIPTH = NO ] ; then
+
+mod="akarw akarw2 akfv3 conusarw conusarw2 conusfv3 hiarw hiarw2 hifv3 prarw prarw2 prfv3"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/hiresw/${models}_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.HIRESW.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.HIRESW.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.HIRESW.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.HIRESW.${year}${month}.TAR.gz
+
+done
+
+fi
+
+SKIPSREF=NO
+
+if [ $SKIPSREF = NO ] ; then
+
+mod="srarwctl srarwn1 srarwn2 srarwn3 srarwn4 srarwn5 srarwn6 srarwp1 srarwp2 srarwp3 srarwp4 srarwp5 srarwp6 srnmbctl srnmbn1 srnmbn2 srnmbn3 srnmbn4 srnmbn5 srnmbn6 srnmbp1 srnmbp2 srnmbp3 srnmbp4 srnmbp5 srnmbp6 srmean"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/sref/${models}_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.SREF.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.SREF.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.SREF.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.SREF.${year}${month}.TAR.gz
+
+done
+
+fi
+
+SKIPSREFAK=NO
+
+if [ $SKIPSREFAK = NO ] ; then
+
+mod="srarwctl srarwn1 srarwn2 srarwn3 srarwn4 srarwn5 srarwn6 srarwp1 srarwp2 srarwp3 srarwp4 srarwp5 srarwp6 srnmbctl srnmbn1 srnmbn2 srnmbn3 srnmbn4 srnmbn5 srnmbn6 srnmbp1 srnmbp2 srnmbp3 srnmbp4 srnmbp5 srnmbp6 srmean"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}ak_vsdb
+cd $HOLD/${models}ak_vsdb
+
+cp $COMverf/srefak/${models}_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+cd $HOLD
+tar -cvf $HOLD/${MODELS}.VSDB.SREFAK.${year}${month}.TAR .
+
+rm -r ${models}ak_vsdb
+
+gzip ${MODELS}.VSDB.SREFAK.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.SREFAK.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.SREFAK.${year}${month}.TAR.gz
+
+done
+
+fi
+
+
+#
+mod="srefens srefensx"
+
+for models in $mod
+do
+
+mkdir -p $HOLD/${models}_vsdb
+cd $HOLD/${models}_vsdb
+
+cp $COMverf/${models}/*_${year}${month}* .
+
+echo $models > lower
+MODELS=`cat lower | tr '[a-z]' '[A-Z]'`
+
+tar -cvf $HOLD/${MODELS}.VSDB.SREF.${year}${month}.TAR .
+
+cd $HOLD
+rm -r ${models}_vsdb
+
+gzip ${MODELS}.VSDB.SREF.${year}${month}.TAR
+
+hsi "cd /Permanent/NCEPDEV/emc-meso/Perry.Shafran/vsdb_backup/${year}${month} ; put ${MODELS}.VSDB.SREF.${year}${month}.TAR.gz"
+
+rm ${MODELS}.VSDB.SREF.${year}${month}.TAR.gz
+
+done
